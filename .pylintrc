@@ -1,0 +1,45 @@
+[MASTER]
+# Python code to analyze
+ignore=CVS,.git,tests,venv,build,dist
+# Use multiple processes to speed up Pylint (use 0 for auto)
+jobs=0
+
+[MESSAGES CONTROL]
+# Disable specific warnings
+disable=C0111,  # missing-docstring
+        C0103,  # invalid-name (for variables)
+        R0903,  # too-few-public-methods
+        W0511,  # fixme (TODO, FIXME comments)
+        R0913,  # too-many-arguments
+        R0914   # too-many-locals
+
+[FORMAT]
+# Maximum number of characters on a single line
+max-line-length=120
+
+[BASIC]
+# Regular expression which should only match function or class names
+function-rgx=[a-z_][a-z0-9_]{2,50}$
+class-rgx=[A-Z_][a-zA-Z0-9_]+$
+# Naming style for arguments
+argument-naming-style=snake_case
+
+[REPORTS]
+# Set the output format (text, parseable, colorized, html)
+output-format=colorized
+# Include a brief explanation of each error
+msg-template={path}:{line}: [{msg_id}({symbol}), {obj}] {msg}
+
+[SIMILARITIES]
+# Minimum lines number of a similarity
+min-similarity-lines=4
+# Ignore imports when computing similarities
+ignore-imports=yes
+
+[TYPECHECK]
+# List of module names for which member attributes should not be checked
+ignored-modules=numpy,tensorflow,torch,cv2
+
+[MISCELLANEOUS]
+# List of note tags to take into consideration
+notes=FIXME,XXX,TODO

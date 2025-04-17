@@ -18,7 +18,7 @@ Attackers can exploit LLM systems by hiding text in PDFs that is:
 
 These attacks can lead to prompt injection, data leakage, or manipulation of LLM outputs.
 
-The related technique is the [LLM01:2025](https://genai.owasp.org/llmrisk/llm01-prompt-injection/) from OWASP top 10 for LLMs, which states that "LLMs can be tricked into executing malicious code or commands by embedding them in seemingly innocuous text." 
+The related technique is the [l ](https://genai.owasp.org/llmrisk/llm01-prompt-injection/) from OWASP top 10 for LLMs, which states that "LLMs can be tricked into executing malicious code or commands by embedding them in seemingly innocuous text." 
 ## Features
 
 Doc-Sherlock implements multiple detection strategies to identify hidden content:
@@ -305,6 +305,12 @@ The test suite generates test PDFs using ReportLab and validates that each detec
 - False positives and false negatives are possible
 - Always combine with other security measures when processing PDFs in LLM pipelines
 - Consider using PDF sanitization tools alongside Doc-Sherlock
+
+## Example of practical attacks
+
+For more information on practical attacks, you can visit the following link:
+
+https://kai-greshake.de/posts/inject-my-pdf/
 
 ## Contributing
 

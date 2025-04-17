@@ -21,6 +21,7 @@ setup(
             "black>=23.0.0",
             "isort>=5.0.0",
             "flake8>=6.0.0",
+            "pylint>=3.0.0",
         ],
         "test": [
             "pytest>=7.0.0",
