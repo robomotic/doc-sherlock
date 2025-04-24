@@ -6,6 +6,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "pypdf>=3.15.0",
+        "PyPDF2>=3.0.0",
         "pdfminer.six==20221105",  # Using version compatible with pdfplumber
         "pikepdf>=8.0.0",
         "pdfplumber==0.10.4",  # Specific version compatible with pdfminer.six==20221105

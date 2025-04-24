@@ -53,11 +53,14 @@ def cli():
 @cli.command()
 @click.argument('path', type=click.Path(exists=True))
 @click.option('--output', '-o', type=click.Path(), help='Save results to JSON file')
+@click.option('--markdown', '-m', type=click.Path(), help='Save extracted PDF content as Markdown file')
 @click.option('--recursive', '-r', is_flag=True, help='Recursively analyze PDFs in directories')
 @click.option('--no-color', is_flag=True, help='Disable colored output')
 @click.option('--quiet', '-q', is_flag=True, help='Only output machine-readable results')
-def analyze(path, output, recursive, no_color, quiet):
-    """Analyze PDF files for hidden text and potential prompt injection vectors."""
+@click.option('--extract-only', is_flag=True, help='Only extract PDF content (no detections)')
+@click.option('--extract-tables', is_flag=True, help='Extract tables as CSV files (requires tabula-py)')
+def analyze(path, output, markdown, recursive, no_color, quiet, extract_only, extract_tables):
+    """Analyze PDF files for hidden text and potential prompt injection vectors. Optionally export PDF content as Markdown, and extract tables as CSV."""
     if no_color:
         # Disable colorama colors
         Fore.GREEN = Fore.YELLOW = Fore.RED = Style.BRIGHT = Style.RESET_ALL = ''
@@ -68,11 +71,47 @@ def analyze(path, output, recursive, no_color, quiet):
             if path.suffix.lower() != '.pdf':
                 logger.error("Not a PDF file: %s", path)
                 sys.exit(1)
-            analyzer = PDFAnalyzer(str(path))
-            results = [analyzer.analyze_file()]
+            pdf_files = [str(path)]
         else:
-            results = PDFAnalyzer.analyze_directory(str(path), recursive=recursive)
+            pdf_files = [str(p) for p in path.glob('**/*.pdf')] if recursive else [str(p) for p in path.glob('*.pdf')]
 
+        if not pdf_files:
+            logger.warning("No PDF files found to analyze")
+            return
+
+        # Only extract content, skip detections
+        if extract_only or markdown or extract_tables:
+            if markdown:
+                try:
+                    from PyPDF2 import PdfReader
+                except ImportError:
+                    logger.error("PyPDF2 is required for Markdown export. Please install it with 'pip install PyPDF2'.")
+                    sys.exit(1)
+                md_path = Path(markdown)
+                with open(md_path, 'w', encoding='utf-8') as md_file:
+                    for pdf_path in pdf_files:
+                        reader = PdfReader(pdf_path)
+                        md_file.write(f'# {os.path.basename(pdf_path)}\n\n')
+                        for i, page in enumerate(reader.pages):
+                            text = page.extract_text() or ''
+                            md_file.write(f'## Page {i+1}\n\n{text}\n\n')
+                logger.info(f"Markdown exported to {md_path}")
+            if extract_tables:
+                try:
+                    import tabula
+                except ImportError:
+                    logger.error("tabula-py is required for table extraction. Please install it with 'pip install tabula-py'.")
+                    sys.exit(1)
+                for pdf_path in pdf_files:
+                    base = os.path.splitext(os.path.basename(pdf_path))[0]
+                    tables = tabula.read_pdf(pdf_path, pages='all', multiple_tables=True, lattice=True)
+                    for idx, table in enumerate(tables):
+                        csv_path = f"{base}_table_{idx+1}.csv"
+                        table.to_csv(csv_path, index=False)
+                        logger.info(f"Extracted table to {csv_path}")
+            return
+
+        # ...existing detection/analysis code...
         if not results:
             logger.warning("No PDF files found to analyze")
             return
@@ -98,6 +137,23 @@ def analyze(path, output, recursive, no_color, quiet):
                 # Multiple files or no extension - save array of results
                 with open(output, 'w', encoding='utf-8') as f:
                     json.dump([r.to_dict() for r in results], f, indent=2)
+
+        # Save Markdown if requested
+        if markdown:
+            try:
+                from PyPDF2 import PdfReader
+            except ImportError:
+                logger.error("PyPDF2 is required for Markdown export. Please install it with 'pip install PyPDF2'.")
+                sys.exit(1)
+            md_path = Path(markdown)
+            with open(md_path, 'w', encoding='utf-8') as md_file:
+                for pdf_path in pdf_files:
+                    reader = PdfReader(pdf_path)
+                    md_file.write(f'# {os.path.basename(pdf_path)}\n\n')
+                    for i, page in enumerate(reader.pages):
+                        text = page.extract_text() or ''
+                        md_file.write(f'## Page {i+1}\n\n{text}\n\n')
+            logger.info(f"Markdown exported to {md_path}")
 
     except Exception as e:
         logger.error("Error during analysis: %s", str(e))
