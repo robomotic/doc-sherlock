@@ -43,12 +43,12 @@ class PDFAnalyzer:
         if not self.pdf_path.exists():
             raise FileNotFoundError(f"PDF file not found: {self.pdf_path}")
 
-    def run_all_detectors(self) -> List[Finding]:
+    def run_all_detectors(self) -> 'AnalysisResults':
         """
         Run all available detectors on the PDF.
 
         Returns:
-            List of findings from all detectors
+            AnalysisResults containing all findings
         """
         findings = []
         detectors = [
@@ -73,7 +73,7 @@ class PDFAnalyzer:
             except Exception as e:
                 self.logger.error("Unexpected error in detector %s: %s", detector.__class__.__name__, str(e))
 
-        return findings
+        return AnalysisResults(str(self.pdf_path), findings)
 
     def analyze_file(self) -> AnalysisResults:
         """
@@ -123,3 +123,4 @@ class PDFAnalyzer:
                 logger.error("Error analyzing %s: %s", pdf_file, str(e))
 
         return results
+

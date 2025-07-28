@@ -18,6 +18,10 @@ logger = logging.getLogger(__name__)
 class ObscuredTextDetector(BaseDetector):
     """Detector for identifying text that is obscured by other elements."""
     
+    def __init__(self, pdf_path: str, config: Optional[Dict[str, Any]] = None):
+        super().__init__(pdf_path, config)
+        self._load_config()
+
     def _load_config(self) -> None:
         """Load configuration with default values."""
         self.min_overlap_ratio = self.config.get("min_overlap_ratio", 0.5)

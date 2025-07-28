@@ -17,6 +17,10 @@ logger = logging.getLogger(__name__)
 class MetadataDetector(BaseDetector):
     """Detector for identifying suspicious content in PDF metadata."""
     
+    def __init__(self, pdf_path: str, config: Optional[Dict[str, Any]] = None):
+        super().__init__(pdf_path, config)
+        self._load_config()
+
     def _load_config(self) -> None:
         """Load configuration with default values."""
         self.max_metadata_length = self.config.get("max_metadata_length", 1000)  # Characters

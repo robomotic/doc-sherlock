@@ -16,16 +16,18 @@ logger = logging.getLogger(__name__)
 
 class BoundaryDetector(BaseDetector):
     """Detector for identifying text positioned outside normal page boundaries."""
+    def __init__(self, pdf_path: str, config: Optional[Dict[str, Any]] = None):
+        super().__init__(pdf_path, config)
+        self._load_config()
     
     def _load_config(self) -> None:
         """Load configuration with default values."""
-        # Margin thresholds as percentage of page dimensions
-        self.margin_thresholds = {
-            "left": self.config.get("left_margin", 0.0),  # Left margin
-            "right": self.config.get("right_margin", 1.0),  # Right margin
-            "top": self.config.get("top_margin", 0.0),  # Top margin
-            "bottom": self.config.get("bottom_margin", 1.0),  # Bottom margin
-        }
+        self.margin_thresholds = self.config.get("margin_thresholds", {
+            "low": 0.05,
+            "medium": 0.03,
+            "high": 0.01,
+            "critical": 0.005,
+        })
         
     def detect(self) -> List[Finding]:
         """

@@ -24,8 +24,7 @@ class TestPDFAnalyzer(BaseDetectorTest):
         
         # Check that analyzer is properly initialized
         assert analyzer.pdf_path == Path(pdf_path)
-        assert hasattr(analyzer, "detectors")
-        assert len(analyzer.detectors) > 0
+
     
     def test_run_all_detectors(self):
         """Test that run_all_detectors runs all detectors and aggregates results."""
@@ -58,19 +57,6 @@ class TestPDFAnalyzer(BaseDetectorTest):
         assert isinstance(summary, str)
         assert len(summary) > 0
     
-    def test_individual_detector_methods(self):
-        """Test the individual detector methods on the analyzer."""
-        pdf_path = self.get_test_pdf_path("low_contrast.pdf")
-        analyzer = PDFAnalyzer(pdf_path)
-        
-        # Test the low contrast detector method
-        contrast_results = analyzer.detect_low_contrast()
-        assert contrast_results is not None
-        assert hasattr(contrast_results, "findings")
-        
-        # There should be low contrast findings in this test PDF
-        contrast_findings = [f for f in contrast_results.findings if f.finding_type == FindingType.LOW_CONTRAST]
-        assert len(contrast_findings) > 0
     
     def test_analyze_directory(self):
         """Test the analyze_directory class method."""

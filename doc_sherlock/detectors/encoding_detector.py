@@ -15,6 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 class EncodingDetector(BaseDetector):
+    def __init__(self, pdf_path: str, config: Optional[Dict[str, Any]] = None):
+        super().__init__(pdf_path, config)
+        self._load_config()
     """Detector for identifying unusual encoding in PDF content."""
     
     def _load_config(self) -> None:
@@ -64,24 +67,21 @@ class EncodingDetector(BaseDetector):
                             
                 # Check for unusual object encodings
                 try:
-                    # Get all PDF objects and their numbers
-                    for obj_num in range(1, len(pdf.objects) + 1):
+                    # Iterate over all PDF objects
+                    for obj in pdf.objects:
                         try:
-                            # Try to access the object by its number
-                            if obj_num in pdf.objects:
-                                obj = pdf.objects[obj_num]
-                                
-                                # Check for embedded files
-                                if isinstance(obj, pikepdf.Stream) and obj.get("/Type") == "/EmbeddedFile":
-                                    finding = Finding(
-                                        finding_type=FindingType.ENCODING_ANOMALY,
-                                        description=f"Embedded file detected in PDF",
-                                        severity=Severity.MEDIUM,
-                                        metadata={
-                                            "object_id": str(obj_num),
-                                        }
-                                    )
-                                    findings.append(finding)
+                            obj_num = getattr(obj, "objgen", None)
+                            # Check for embedded files
+                            if isinstance(obj, pikepdf.Stream) and obj.get("/Type") == "/EmbeddedFile":
+                                finding = Finding(
+                                    finding_type=FindingType.ENCODING_ANOMALY,
+                                    description=f"Embedded file detected in PDF",
+                                    severity=Severity.MEDIUM,
+                                    metadata={
+                                        "object_id": str(obj_num),
+                                    }
+                                )
+                                findings.append(finding)
                         except Exception as e:
                             logger.warning(f"Error processing object {obj_num}: {str(e)}")
                 except Exception as e:

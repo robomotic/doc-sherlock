@@ -18,6 +18,10 @@ logger = logging.getLogger(__name__)
 class RenderingDetector(BaseDetector):
     """Detector for identifying discrepancies between text extraction and visual rendering."""
     
+    def __init__(self, pdf_path: str, config: Optional[Dict[str, Any]] = None):
+        super().__init__(pdf_path, config)
+        self._load_config()
+
     def _load_config(self) -> None:
         """Load configuration with default values."""
         self.similarity_threshold = self.config.get("similarity_threshold", 0.7)  # Minimum similarity ratio

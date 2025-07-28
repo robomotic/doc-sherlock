@@ -17,6 +17,10 @@ logger = logging.getLogger(__name__)
 class FontSizeDetector(BaseDetector):
     """Detector for identifying text with tiny font sizes."""
     
+    def __init__(self, pdf_path: str, config: Optional[Dict[str, Any]] = None):
+        super().__init__(pdf_path, config)
+        self._load_config()
+
     def _load_config(self) -> None:
         """Load configuration with default values."""
         self.min_font_size = self.config.get("min_font_size", 4.0)  # Minimum font size in points

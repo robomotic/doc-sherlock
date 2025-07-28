@@ -48,10 +48,11 @@ class Finding:
     page_number: int
     location: Optional[Dict[str, float]] = None
     metadata: Optional[Dict[str, Any]] = None
+    text_content: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert finding to dictionary format."""
-        return {
+        result = {
             "type": self.finding_type,
             "severity": self.severity,
             "description": self.description,
@@ -59,9 +60,24 @@ class Finding:
             "location": self.location,
             "metadata": self.metadata
         }
+        if self.text_content is not None:
+            result["text_content"] = self.text_content
+        return result
 
 
 class AnalysisResults:
+    def summary(self) -> str:
+        """Return a human-readable summary of findings."""
+        if not self.findings:
+            return f"No findings for {self.pdf_path}."
+        summary_lines = [f"Findings for {self.pdf_path}:"]
+        for finding in self.findings:
+            summary_lines.append(f"- [{finding.severity}] {finding.finding_type}: {finding.description}")
+        return "\n".join(summary_lines)
+
+    def has_findings(self) -> bool:
+        """Return True if there are any findings."""
+        return bool(self.findings)
     """Container for all findings from analyzing a PDF."""
 
     def __init__(self, pdf_path: str, findings: List[Finding]):
