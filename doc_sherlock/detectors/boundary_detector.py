@@ -23,10 +23,10 @@ class BoundaryDetector(BaseDetector):
     def _load_config(self) -> None:
         """Load configuration with default values."""
         self.margin_thresholds = self.config.get("margin_thresholds", {
-            "low": 0.05,
-            "medium": 0.03,
-            "high": 0.01,
-            "critical": 0.005,
+            "left": 0.05,
+            "right": 0.95,
+            "top": 0.05,
+            "bottom": 0.95,
         })
         
     def detect(self) -> List[Finding]:
