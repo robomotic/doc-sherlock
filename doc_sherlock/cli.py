@@ -11,6 +11,11 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 from colorama import init, Fore, Style
 
+# FastAPI imports for REST service
+from fastapi import FastAPI, File, UploadFile
+from fastapi.responses import JSONResponse
+import uvicorn
+
 from .analyzer import PDFAnalyzer
 from .findings import Finding, FindingType, Severity, AnalysisResults
 
@@ -166,6 +171,40 @@ def analyze(path, output, markdown, recursive, no_color, quiet, extract_only, ex
 def main():
     """Main entry point for the CLI."""
     cli()
+
+
+# --- FastAPI REST Service Command ---
+@cli.command()
+@click.option('--host', default='127.0.0.1', help='Host to run the FastAPI server on')
+@click.option('--port', default=8000, help='Port to run the FastAPI server on')
+def rest_service(host, port):
+    """Start a FastAPI REST service for PDF analysis."""
+    app = FastAPI(title="Doc-Sherlock REST API")
+
+    @app.post("/analyze")
+    async def analyze_pdf(file: UploadFile = File(...)):
+        """Analyze a PDF file and return findings as JSON."""
+        try:
+            # Save uploaded file to a temporary location
+            import tempfile
+            suffix = Path(file.filename).suffix or ".pdf"
+            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+                tmp.write(await file.read())
+                tmp_path = tmp.name
+
+            analyzer = PDFAnalyzer(tmp_path)
+            findings = analyzer.run_all_detectors()
+            # Clean up temp file
+            os.remove(tmp_path)
+
+            # Convert findings to dicts for JSON response
+            findings_json = [f.to_dict() for f in findings]
+            return JSONResponse(content={"findings": findings_json})
+        except Exception as e:
+            return JSONResponse(status_code=500, content={"error": str(e)})
+
+    print(f"Starting FastAPI server at http://{host}:{port}")
+    uvicorn.run(app, host=host, port=port)
 
 
 if __name__ == "__main__":

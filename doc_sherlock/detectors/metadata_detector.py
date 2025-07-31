@@ -108,36 +108,52 @@ class MetadataDetector(BaseDetector):
                 # Check XMP metadata
                 if hasattr(pdf, "xmp_metadata") and pdf.xmp_metadata:
                     xmp_content = pdf.xmp_metadata
-                    
-                    # Check for suspicious patterns in XMP
-                    for pattern in self.suspicious_patterns:
-                        if re.search(pattern, xmp_content, re.IGNORECASE):
+                    # Try to get string content from XMP metadata
+                    if not isinstance(xmp_content, str):
+                        # Try to extract XML string if possible
+                        if hasattr(xmp_content, 'xml') and isinstance(xmp_content.xml, str):
+                            xmp_content = xmp_content.xml
+                        elif hasattr(xmp_content, 'get_xml'):
+                            try:
+                                xmp_content = xmp_content.get_xml()
+                            except Exception:
+                                xmp_content = None
+                        else:
+                            try:
+                                xmp_content = str(xmp_content)
+                            except Exception:
+                                xmp_content = None
+                    if isinstance(xmp_content, str) and xmp_content:
+                        # Check for suspicious patterns in XMP
+                        for pattern in self.suspicious_patterns:
+                            if re.search(pattern, xmp_content, re.IGNORECASE):
+                                finding = Finding(
+                                    finding_type=FindingType.SUSPICIOUS_METADATA,
+                                    description=f"Suspicious content in XMP metadata",
+                                    severity=Severity.HIGH,
+                                    page_number=None,
+                                    metadata={
+                                        "field": "XMP",
+                                        "matched_pattern": pattern,
+                                    }
+                                )
+                                findings.append(finding)
+                                break
+                        # Check for unusually long XMP
+                        if len(xmp_content) > self.max_metadata_length * 2:  # XMP is typically longer
                             finding = Finding(
                                 finding_type=FindingType.SUSPICIOUS_METADATA,
-                                description=f"Suspicious content in XMP metadata",
-                                severity=Severity.HIGH,
+                                description=f"Unusually long XMP metadata",
+                                severity=Severity.MEDIUM,
                                 page_number=None,
                                 metadata={
                                     "field": "XMP",
-                                    "matched_pattern": pattern,
+                                    "length": len(xmp_content)
                                 }
                             )
                             findings.append(finding)
-                            break
-                            
-                    # Check for unusually long XMP
-                    if len(xmp_content) > self.max_metadata_length * 2:  # XMP is typically longer
-                        finding = Finding(
-                            finding_type=FindingType.SUSPICIOUS_METADATA,
-                            description=f"Unusually long XMP metadata",
-                            severity=Severity.MEDIUM,
-                            page_number=None,
-                            metadata={
-                                "field": "XMP",
-                                "length": len(xmp_content)
-                            }
-                        )
-                        findings.append(finding)
+                    else:
+                        logger.warning("XMP metadata is not a string and could not be converted for scanning.")
                 
                 # Check document-level JavaScript actions
                 if "/Names" in pdf.trailer["/Root"]:

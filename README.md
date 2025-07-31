@@ -101,11 +101,42 @@ pip install doc-sherlock
 # pip install -e .
 ```
 
+
 ### Dependencies
 
 Doc-Sherlock requires:
 - Python 3.8+
 - Tesseract OCR (for rendering discrepancy detection)
+
+#### REST API (FastAPI) Support
+
+To use the REST API server, you need the `fastapi` and `uvicorn` packages. These are included in the `dev` extra requirements:
+
+```bash
+pip install -e .[dev]
+```
+
+This will install all development dependencies, including FastAPI and Uvicorn, which are required to run the REST API server.
+
+#### Running the REST API Server
+
+After installing the dev dependencies, you can start the REST API server with:
+
+```bash
+doc-sherlock rest_service
+# or, if not installed as a script:
+python -m doc_sherlock.cli rest_service
+```
+
+This will start a FastAPI server (default: http://127.0.0.1:8000) with a `/analyze` POST endpoint. You can send a PDF file to this endpoint and receive the findings as a JSON response.
+
+**Example using curl:**
+
+```bash
+curl -F "file=@path/to/document.pdf" http://127.0.0.1:8000/analyze
+```
+
+---
 
 #### Installing Tesseract OCR Manually
 

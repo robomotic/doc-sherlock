@@ -23,6 +23,9 @@ setup(
             "isort>=5.0.0",
             "flake8>=6.0.0",
             "pylint>=3.0.0",
+            "fastapi>=0.110.0",
+            "uvicorn[standard]>=0.29.0",
+            "python-multipart>=0.0.7",
         ],
         "test": [
             "pytest>=7.0.0",
