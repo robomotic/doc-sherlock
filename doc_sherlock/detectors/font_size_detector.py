@@ -72,10 +72,10 @@ class FontSizeDetector(BaseDetector):
                     page_width = float(page.width)
                     page_height = float(page.height)
                     page_number = i + 1
-                    
+
                     # Extract text with formatting info
                     chars = page.chars
-                    
+
                     # Group characters by font size
                     char_groups = {}
                     for char in chars:
@@ -83,33 +83,37 @@ class FontSizeDetector(BaseDetector):
                         if size not in char_groups:
                             char_groups[size] = []
                         char_groups[size].append(char)
-                    
+
+                    # Verbose: log font size distribution for this page
+                    font_size_dist = {size: len(char_list) for size, char_list in char_groups.items()}
+                    logger.info(f"[FontSizeDetector] Page {page_number}: Font size distribution: {font_size_dist}")
+
                     # Check each font size
                     for font_size, char_list in char_groups.items():
                         if not char_list:
                             continue
-                            
+
                         # Skip if font size is acceptable
                         if font_size >= self.min_font_size:
                             continue
-                            
+
                         # Build text content from characters
                         text_content = "".join(char.get("text", "") for char in char_list[:100])
                         if len(char_list) > 100:
                             text_content += "..."
-                            
+
                         # Calculate bounding box
                         x0 = min(char.get("x0", float('inf')) for char in char_list)
                         y0 = min(char.get("top", float('inf')) for char in char_list)
                         x1 = max(char.get("x1", 0) for char in char_list)
                         y1 = max(char.get("bottom", 0) for char in char_list)
-                        
+
                         # Determine severity
                         severity = Severity.LOW
                         for sev_name, threshold in self.severity_thresholds.items():
                             if font_size < threshold:
                                 severity = Severity(sev_name)
-                        
+
                         # Create finding
                         finding = Finding(
                             finding_type=FindingType.TINY_FONT,
@@ -128,7 +132,7 @@ class FontSizeDetector(BaseDetector):
                                 "character_count": len(char_list),
                             }
                         )
-                        
+
                         findings.append(finding)
         except Exception as e:
             logger.error(f"Error in FontSizeDetector: {str(e)}")

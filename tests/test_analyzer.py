@@ -12,8 +12,31 @@ from .test_base import BaseDetectorTest
 
 
 class TestPDFAnalyzer(BaseDetectorTest):
-    """Tests for the main PDFAnalyzer class."""
-    
+
+    def test_real_cv_hide(self):
+        """A real CV with simple injection"""
+        pdf_path = self.get_test_pdf_path("simple_cv_spice.pdf")
+
+        # Font size detector
+        from doc_sherlock.detectors.font_size_detector import FontSizeDetector
+        font_detector = FontSizeDetector(pdf_path, {"min_font_size": 4.0})
+        font_findings = font_detector.detect()
+        small_font_findings = [f for f in font_findings if getattr(f, "finding_type", None) == FindingType.TINY_FONT]
+        print("Small font findings:")
+        for f in small_font_findings:
+            print(f"- Page {getattr(f, 'page_number', '?')}: {getattr(f, 'description', '')} (font size: {f.metadata.get('font_size') if hasattr(f, 'metadata') else '?'})")
+
+        # Opacity detector
+        from doc_sherlock.detectors.opacity_detector import OpacityDetector
+        opacity_detector = OpacityDetector(pdf_path)
+        opacity_findings = opacity_detector.detect()
+        print("Opacity findings:")
+        for f in opacity_findings:
+            print(f"- Page {getattr(f, 'page_number', '?')}: {getattr(f, 'description', '')}")
+
+        # Assert at least one finding for small font or opacity
+        assert len(small_font_findings) > 0 or len(opacity_findings) > 0, "No small font or opacity findings in functionalsample-injection1.pdf"
+
     def test_analyzer_initialization(self):
         """Test that the analyzer initializes properly."""
         # Get a test PDF
@@ -24,7 +47,6 @@ class TestPDFAnalyzer(BaseDetectorTest):
         
         # Check that analyzer is properly initialized
         assert analyzer.pdf_path == Path(pdf_path)
-
     
     def test_run_all_detectors(self):
         """Test that run_all_detectors runs all detectors and aggregates results."""
@@ -84,3 +106,4 @@ class TestPDFAnalyzer(BaseDetectorTest):
         # Check that FileNotFoundError is raised
         with pytest.raises(FileNotFoundError):
             PDFAnalyzer(nonexistent_path)
+

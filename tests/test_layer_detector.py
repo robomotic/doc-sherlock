@@ -9,6 +9,23 @@ from .test_base import BaseDetectorTest
 
 
 class TestLayerDetector(BaseDetectorTest):
+    def test_functionalsample_no_alerts(self):
+        """Test that functionalsample.pdf triggers no hidden layer alerts."""
+        pdf_path = self.get_test_pdf_path("functionalsample.pdf")
+        detector = LayerDetector(pdf_path)
+        findings = detector.detect()
+        layer_findings = [f for f in findings if f.finding_type == FindingType.HIDDEN_LAYER]
+        assert len(layer_findings) == 0, "functionalsample.pdf should not trigger hidden layer alerts"
+
+    def test_functionalsample_injection_triggers_alert(self):
+        """Test that functionalsample-injection1.pdf triggers at least one finding (any type)."""
+        pdf_path = self.get_test_pdf_path("functionalsample-injection1.pdf")
+        detector = LayerDetector(pdf_path)
+        findings = detector.detect()
+        print("Findings for functionalsample-injection1.pdf:")
+        for f in findings:
+            print(f"- {getattr(f, 'finding_type', 'UNKNOWN')}: {getattr(f, 'description', '')}")
+        assert len(findings) > 0, "functionalsample-injection1.pdf should trigger at least one finding"
     """Tests for the layer detector."""
     
     def test_detects_hidden_layers(self):
