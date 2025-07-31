@@ -17,6 +17,7 @@ DATA_DIR = Path(__file__).parent / "data"
 os.makedirs(DATA_DIR, exist_ok=True)
 
 
+
 def create_low_contrast_pdf(filepath):
     """Create PDF with white text on white background."""
     c = canvas.Canvas(filepath, pagesize=letter)
@@ -225,6 +226,35 @@ def create_rendering_discrepancy_pdf(filepath):
     return filepath
 
 
+from PIL import Image
+import io
+
+def create_pdf_with_images(output_path, num_images=6):
+    """Create a PDF with a given number of real embedded PNG images."""
+    pdf = FPDF()
+    pdf.add_page()
+    image_paths = []
+    for i in range(num_images):
+        # Create a simple colored PNG in memory
+        img = Image.new('RGB', (50, 50), (100 + i*20, 100, 200 - i*20))
+        img_bytes = io.BytesIO()
+        img.save(img_bytes, format='PNG')
+        img_bytes.seek(0)
+        img_path = f"/tmp/tmp_img_{i}.png"
+        with open(img_path, 'wb') as f:
+            f.write(img_bytes.read())
+        image_paths.append(img_path)
+        x = 10 + (i % 3) * 60
+        y = 20 + (i // 3) * 60
+        pdf.image(img_path, x=x, y=y, w=50, h=50)
+    pdf.output(output_path)
+    # Clean up temp images
+    for img_path in image_paths:
+        try:
+            os.remove(img_path)
+        except Exception:
+            pass
+
 def generate_all_test_pdfs():
     """Generate all test PDFs and return their paths."""
     
@@ -238,6 +268,7 @@ def generate_all_test_pdfs():
         "suspicious_metadata.pdf": create_suspicious_metadata_pdf, 
         "encoding_anomaly.pdf": create_encoding_anomaly_pdf,
         "rendering_discrepancy.pdf": create_rendering_discrepancy_pdf,
+        "only_images.pdf": create_pdf_with_images,
     }
     
     pdf_paths = {}

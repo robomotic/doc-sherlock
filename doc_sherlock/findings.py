@@ -10,6 +10,7 @@ from typing import Dict, List, Optional, Any
 
 class FindingType(str, Enum):
     """Types of findings that can be reported."""
+    SUSPICIOUS_CONTENT = "suspicious_content"
     BOUNDARY = "boundary"
     CONTRAST = "contrast"
     ENCODING = "encoding"
