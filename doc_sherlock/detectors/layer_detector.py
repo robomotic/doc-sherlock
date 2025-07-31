@@ -38,6 +38,7 @@ class LayerDetector(BaseDetector):
                         finding_type=FindingType.HIDDEN_LAYER,
                         description="Hidden layer detected: 'Simulated Hidden Layer'",
                         severity=Severity.MEDIUM,
+                        page_number=1,
                         metadata={
                             "layer_name": "Simulated Hidden Layer",
                             "hidden_by_default": True,
@@ -97,6 +98,7 @@ class LayerDetector(BaseDetector):
                                     finding_type=FindingType.HIDDEN_LAYER,
                                     description=description,
                                     severity=severity,
+                                    page_number=None,
                                     metadata={
                                         "layer_name": name,
                                         "hidden_by_default": hidden,

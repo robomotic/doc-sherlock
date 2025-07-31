@@ -78,6 +78,7 @@ class MetadataDetector(BaseDetector):
                                 finding_type=FindingType.SUSPICIOUS_METADATA,
                                 description=f"Unusually long metadata in field '{key}'",
                                 severity=Severity.MEDIUM,
+                                page_number=None,
                                 metadata={
                                     "field": key,
                                     "length": len(value),
@@ -93,6 +94,7 @@ class MetadataDetector(BaseDetector):
                                     finding_type=FindingType.SUSPICIOUS_METADATA,
                                     description=f"Suspicious content in metadata field '{key}'",
                                     severity=Severity.HIGH,
+                                    page_number=None,
                                     text_content=value[:200] + "..." if len(value) > 200 else value,
                                     metadata={
                                         "field": key,
@@ -114,6 +116,7 @@ class MetadataDetector(BaseDetector):
                                 finding_type=FindingType.SUSPICIOUS_METADATA,
                                 description=f"Suspicious content in XMP metadata",
                                 severity=Severity.HIGH,
+                                page_number=None,
                                 metadata={
                                     "field": "XMP",
                                     "matched_pattern": pattern,
@@ -128,6 +131,7 @@ class MetadataDetector(BaseDetector):
                             finding_type=FindingType.SUSPICIOUS_METADATA,
                             description=f"Unusually long XMP metadata",
                             severity=Severity.MEDIUM,
+                            page_number=None,
                             metadata={
                                 "field": "XMP",
                                 "length": len(xmp_content)
@@ -143,6 +147,7 @@ class MetadataDetector(BaseDetector):
                             finding_type=FindingType.SUSPICIOUS_METADATA,
                             description=f"Document contains JavaScript",
                             severity=Severity.HIGH,
+                            page_number=None,
                             metadata={
                                 "type": "JavaScript"
                             }
