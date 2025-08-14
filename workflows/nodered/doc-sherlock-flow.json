@@ -1,0 +1,196 @@
+[
+    {
+        "id": "f1e2d3c4b5a6",
+        "type": "tab",
+        "label": "Doc-Sherlock API Example",
+        "disabled": false,
+        "info": "Example flow for submitting PDFs to doc-sherlock API"
+    },
+    {
+        "id": "a1b2c3d4e5f6",
+        "type": "inject",
+        "z": "f1e2d3c4b5a6",
+        "name": "Trigger Analysis",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 100,
+        "wires": [["b2c3d4e5f6a7"]]
+    },
+    {
+        "id": "b2c3d4e5f6a7",
+        "type": "file in",
+        "z": "f1e2d3c4b5a6",
+        "name": "Read PDF File",
+        "filename": "/data/sample.pdf",
+        "format": "",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 340,
+        "y": 100,
+        "wires": [["c3d4e5f6a7b8"]]
+    },
+    {
+        "id": "c3d4e5f6a7b8",
+        "type": "function",
+        "z": "f1e2d3c4b5a6",
+        "name": "Prepare Multipart Form",
+        "func": "// Create multipart form data manually\n// This approach doesn't require external modules\n\nconst boundary = '----formdata-node-red-' + Math.random().toString(36);\nconst CRLF = '\\r\\n';\n\n// Create multipart body\nlet body = '';\nbody += '--' + boundary + CRLF;\nbody += 'Content-Disposition: form-data; name=\"file\"; filename=\"document.pdf\"' + CRLF;\nbody += 'Content-Type: application/pdf' + CRLF + CRLF;\n\n// Convert body to buffer and append PDF data\nconst headerBuffer = Buffer.from(body, 'utf8');\nconst footerBuffer = Buffer.from(CRLF + '--' + boundary + '--' + CRLF, 'utf8');\n\n// Combine header, PDF data, and footer\nconst finalBuffer = Buffer.concat([\n    headerBuffer,\n    msg.payload, // PDF file buffer\n    footerBuffer\n]);\n\n// Set the multipart payload\nmsg.payload = finalBuffer;\n\n// Set headers\nmsg.headers = {\n    'Content-Type': 'multipart/form-data; boundary=' + boundary,\n    'Content-Length': finalBuffer.length\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [
+            {
+                "var": "FormData",
+                "module": "form-data"
+            }
+        ],
+        "x": 560,
+        "y": 100,
+        "wires": [["d4e5f6a7b8c9"]]
+    },
+    {
+        "id": "d4e5f6a7b8c9",
+        "type": "http request",
+        "z": "f1e2d3c4b5a6",
+        "name": "POST to Doc-Sherlock API",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "http://host.docker.internal:8000/analyze",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "x": 800,
+        "y": 100,
+        "wires": [["e5f6a7b8c9d0", "f6a7b8c9d0e1"]]
+    },
+    {
+        "id": "e5f6a7b8c9d0",
+        "type": "debug",
+        "z": "f1e2d3c4b5a6",
+        "name": "API Response",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1040,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "f6a7b8c9d0e1",
+        "type": "function",
+        "z": "f1e2d3c4b5a6",
+        "name": "Process Findings",
+        "func": "// Check if we have findings\nif (msg.payload && msg.payload.findings) {\n    const findings = msg.payload.findings;\n    \n    // Create a summary\n    const summary = {\n        total_findings: findings.length,\n        by_severity: {},\n        by_type: {},\n        findings: []\n    };\n    \n    // Process each finding\n    findings.forEach(finding => {\n        // Count by severity\n        summary.by_severity[finding.severity] = \n            (summary.by_severity[finding.severity] || 0) + 1;\n        \n        // Count by type (API returns 'type', not 'finding_type')\n        summary.by_type[finding.type] = \n            (summary.by_type[finding.type] || 0) + 1;\n        \n        // Add simplified finding info\n        summary.findings.push({\n            type: finding.type,\n            severity: finding.severity,\n            page: finding.page_number,\n            description: finding.description\n        });\n    });\n    \n    msg.payload = summary;\n    return msg;\n} else if (msg.payload && msg.payload.error) {\n    // Handle error response\n    msg.payload = {\n        error: true,\n        message: msg.payload.error\n    };\n    return msg;\n}\n\n// No findings or unexpected response\nmsg.payload = {\n    error: true,\n    message: \"Unexpected response format\"\n};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1050,
+        "y": 140,
+        "wires": [["a7b8c9d0e1f2"]]
+    },
+    {
+        "id": "a7b8c9d0e1f2",
+        "type": "debug",
+        "z": "f1e2d3c4b5a6",
+        "name": "Processed Summary",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1260,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "alt1b2c3d4e5",
+        "type": "inject",
+        "z": "f1e2d3c4b5a6",
+        "name": "Trigger File Upload",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 170,
+        "y": 240,
+        "wires": [["alt2c3d4e5f6"]]
+    },
+    {
+        "id": "alt2c3d4e5f6",
+        "type": "function",
+        "z": "f1e2d3c4b5a6",
+        "name": "Create Upload Form",
+        "func": "// Alternative approach: Create a simple HTML form for file upload\nconst html = `\n<!DOCTYPE html>\n<html>\n<head>\n    <title>Doc-Sherlock PDF Upload</title>\n    <style>\n        body { font-family: Arial, sans-serif; margin: 40px; }\n        .upload-form { max-width: 500px; }\n        input[type=\"file\"] { margin: 10px 0; }\n        button { background: #007bff; color: white; padding: 10px 20px; border: none; cursor: pointer; }\n        button:hover { background: #0056b3; }\n        .result { margin-top: 20px; padding: 10px; background: #f8f9fa; border: 1px solid #dee2e6; }\n    </style>\n</head>\n<body>\n    <h1>Doc-Sherlock PDF Analysis</h1>\n    <div class=\"upload-form\">\n        <form id=\"uploadForm\" enctype=\"multipart/form-data\">\n            <label for=\"pdfFile\">Select PDF file:</label><br>\n            <input type=\"file\" id=\"pdfFile\" name=\"file\" accept=\".pdf\" required><br>\n            <button type=\"submit\">Analyze PDF</button>\n        </form>\n        <div id=\"result\" class=\"result\" style=\"display:none;\"></div>\n    </div>\n    \n    <script>\n        document.getElementById('uploadForm').addEventListener('submit', async function(e) {\n            e.preventDefault();\n            \n            const fileInput = document.getElementById('pdfFile');\n            const resultDiv = document.getElementById('result');\n            \n            if (!fileInput.files[0]) {\n                alert('Please select a PDF file');\n                return;\n            }\n            \n            const formData = new FormData();\n            formData.append('file', fileInput.files[0]);\n            \n            try {\n                resultDiv.innerHTML = 'Analyzing PDF...';\n                resultDiv.style.display = 'block';\n                \n                const response = await fetch('http://localhost:8000/analyze', {\n                    method: 'POST',\n                    body: formData\n                });\n                \n                const data = await response.json();\n                \n                if (response.ok) {\n                    const findings = data.findings || [];\n                    let html = \\`<h3>Analysis Results</h3>\\`;\n                    html += \\`<p><strong>Total Findings:</strong> \\${findings.length}</p>\\`;\n                    \n                    if (findings.length > 0) {\n                        html += '<ul>';\n                        findings.forEach(finding => {\n                            html += \\`<li><strong>\\${finding.finding_type}</strong> (\\${finding.severity}) - Page \\${finding.page_number}: \\${finding.description}</li>\\`;\n                        });\n                        html += '</ul>';\n                    } else {\n                        html += '<p>No issues detected in the PDF.</p>';\n                    }\n                    \n                    resultDiv.innerHTML = html;\n                } else {\n                    resultDiv.innerHTML = \\`<p style=\"color: red;\">Error: \\${data.error || 'Unknown error'}</p>\\`;\n                }\n            } catch (error) {\n                resultDiv.innerHTML = \\`<p style=\"color: red;\">Error: \\${error.message}</p>\\`;\n            }\n        });\n    </script>\n</body>\n</html>\n`;\n\nmsg.payload = html;\nmsg.headers = {\n    'Content-Type': 'text/html'\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 240,
+        "wires": [["alt3d4e5f6a7"]]
+    },
+    {
+        "id": "alt3d4e5f6a7",
+        "type": "http response",
+        "z": "f1e2d3c4b5a6",
+        "name": "Serve Upload Page",
+        "statusCode": "",
+        "headers": {},
+        "x": 590,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "alt4e5f6a7b8",
+        "type": "http in",
+        "z": "f1e2d3c4b5a6",
+        "name": "Upload Page Endpoint",
+        "url": "/upload",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 180,
+        "y": 300,
+        "wires": [["alt2c3d4e5f6"]]
+    }
+]

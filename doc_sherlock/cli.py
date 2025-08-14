@@ -193,12 +193,12 @@ def rest_service(host, port):
                 tmp_path = tmp.name
 
             analyzer = PDFAnalyzer(tmp_path)
-            findings = analyzer.run_all_detectors()
+            results = analyzer.run_all_detectors()
             # Clean up temp file
             os.remove(tmp_path)
 
             # Convert findings to dicts for JSON response
-            findings_json = [f.to_dict() for f in findings]
+            findings_json = [f.to_dict() for f in results.findings]
             return JSONResponse(content={"findings": findings_json})
         except Exception as e:
             return JSONResponse(status_code=500, content={"error": str(e)})

@@ -1,0 +1,102 @@
+{
+  "name": "Doc-Sherlock API Integration",
+  "description": "Node-RED flow for integrating with doc-sherlock PDF analysis API",
+  "version": "1.0.0",
+  "author": "Doc-Sherlock Project",
+  "flows": [
+    {
+      "name": "PDF Analysis Flow",
+      "description": "Direct PDF file analysis using doc-sherlock API",
+      "nodes": [
+        {
+          "type": "inject",
+          "name": "Trigger Analysis",
+          "description": "Manual trigger to start PDF analysis"
+        },
+        {
+          "type": "file in",
+          "name": "Read PDF File",
+          "description": "Reads PDF file from container filesystem",
+          "config": {
+            "filename": "/data/sample.pdf",
+            "encoding": "none"
+          }
+        },
+        {
+          "type": "function",
+          "name": "Prepare Multipart Form",
+          "description": "Creates multipart form data using built-in Node.js functionality"
+        },
+        {
+          "type": "http request",
+          "name": "POST to Doc-Sherlock API",
+          "description": "Sends PDF to doc-sherlock analysis endpoint",
+          "config": {
+            "method": "POST",
+            "url": "http://host.docker.internal:8000/analyze"
+          }
+        },
+        {
+          "type": "function",
+          "name": "Process Findings",
+          "description": "Parses API response and creates summary"
+        },
+        {
+          "type": "debug",
+          "name": "API Response",
+          "description": "Displays raw API response"
+        },
+        {
+          "type": "debug",
+          "name": "Processed Summary",
+          "description": "Displays processed findings summary"
+        }
+      ]
+    },
+    {
+      "name": "Web Upload Interface",
+      "description": "HTTP endpoint for web-based PDF upload",
+      "nodes": [
+        {
+          "type": "http in",
+          "name": "Upload Page Endpoint",
+          "description": "HTTP GET endpoint at /upload",
+          "config": {
+            "url": "/upload",
+            "method": "get"
+          }
+        },
+        {
+          "type": "function",
+          "name": "Create Upload Form",
+          "description": "Generates HTML upload form with JavaScript"
+        },
+        {
+          "type": "http response",
+          "name": "Serve Upload Page",
+          "description": "Returns HTML page to browser"
+        }
+      ]
+    }
+  ],
+  "api_endpoints": {
+    "doc_sherlock": {
+      "url": "http://host.docker.internal:8000/analyze",
+      "method": "POST",
+      "content_type": "multipart/form-data",
+      "description": "Doc-Sherlock PDF analysis API endpoint"
+    }
+  },
+  "requirements": {
+    "docker": "Required for Node-RED container",
+    "doc_sherlock_api": "Must be running on host machine",
+    "npm_packages": []
+  },
+  "usage": {
+    "setup": "./setup.sh",
+    "start_nodered": "./runme.sh",
+    "start_api": "doc-sherlock rest-service --host 0.0.0.0 --port 8000",
+    "access_nodered": "http://localhost:1880",
+    "access_upload": "http://localhost:1880/upload"
+  }
+}
