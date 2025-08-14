@@ -12,9 +12,11 @@ from typing import Dict, List, Any, Optional
 from colorama import init, Fore, Style
 
 # FastAPI imports for REST service
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Query, HTTPException
 from fastapi.responses import JSONResponse
 import uvicorn
+import requests
+import tempfile
 
 from .analyzer import PDFAnalyzer
 from .findings import Finding, FindingType, Severity, AnalysisResults
@@ -186,7 +188,6 @@ def rest_service(host, port):
         """Analyze a PDF file and return findings as JSON."""
         try:
             # Save uploaded file to a temporary location
-            import tempfile
             suffix = Path(file.filename).suffix or ".pdf"
             with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
                 tmp.write(await file.read())
@@ -200,6 +201,58 @@ def rest_service(host, port):
             # Convert findings to dicts for JSON response
             findings_json = [f.to_dict() for f in results.findings]
             return JSONResponse(content={"findings": findings_json})
+        except Exception as e:
+            return JSONResponse(status_code=500, content={"error": str(e)})
+
+    @app.get("/analyze")
+    async def analyze_pdf_from_url(
+        url: str = Query(..., description="URL of the PDF file to analyze"),
+        headers: str = Query(None, description="Optional headers as JSON string (e.g., '{\"Authorization\": \"Bearer token\"}')")
+    ):
+        """Analyze a PDF file from a URL and return findings as JSON."""
+        try:
+            # Parse headers if provided
+            request_headers = {}
+            if headers:
+                try:
+                    request_headers = json.loads(headers)
+                except json.JSONDecodeError:
+                    raise HTTPException(status_code=400, detail="Invalid JSON format for headers")
+
+            # Download the PDF from the URL
+            try:
+                response = requests.get(url, headers=request_headers, timeout=30)
+                response.raise_for_status()
+            except requests.exceptions.RequestException as e:
+                raise HTTPException(status_code=400, detail=f"Failed to download PDF from URL: {str(e)}")
+
+            # Check if the response content type is PDF
+            content_type = response.headers.get('content-type', '').lower()
+            if 'pdf' not in content_type and not url.lower().endswith('.pdf'):
+                logger.warning(f"Content type '{content_type}' may not be a PDF")
+
+            # Save downloaded content to a temporary file
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                tmp.write(response.content)
+                tmp_path = tmp.name
+
+            # Analyze the PDF
+            analyzer = PDFAnalyzer(tmp_path)
+            results = analyzer.run_all_detectors()
+            
+            # Clean up temp file
+            os.remove(tmp_path)
+
+            # Convert findings to dicts for JSON response
+            findings_json = [f.to_dict() for f in results.findings]
+            return JSONResponse(content={
+                "findings": findings_json,
+                "source_url": url,
+                "content_type": response.headers.get('content-type'),
+                "file_size": len(response.content)
+            })
+        except HTTPException:
+            raise
         except Exception as e:
             return JSONResponse(status_code=500, content={"error": str(e)})
 
