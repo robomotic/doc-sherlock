@@ -1,0 +1,274 @@
+{
+  "name": "Doc-Sherlock API Integration",
+  "description": "n8n workflow for integrating with doc-sherlock PDF analysis API",
+  "version": "1.0.0",
+  "author": "Doc-Sherlock Project",
+  "platform": "n8n",
+  "workflows": [
+    {
+      "name": "PDF Analysis Workflow",
+      "description": "Direct PDF file analysis using doc-sherlock API with manual trigger",
+      "trigger_type": "manual",
+      "nodes": [
+        {
+          "type": "manualTrigger",
+          "name": "Manual Trigger",
+          "description": "Manual trigger to start PDF analysis process"
+        },
+        {
+          "type": "readBinaryFile",
+          "name": "Read PDF File",
+          "description": "Reads PDF file from container filesystem",
+          "config": {
+            "filePath": "/home/node/data/sample.pdf"
+          }
+        },
+        {
+          "type": "code",
+          "name": "Prepare File Upload",
+          "description": "Prepares PDF file data for multipart form upload to API"
+        },
+        {
+          "type": "httpRequest",
+          "name": "POST to Doc-Sherlock API",
+          "description": "Sends PDF to doc-sherlock analysis endpoint",
+          "config": {
+            "method": "POST",
+            "url": "http://host.docker.internal:8000/analyze",
+            "contentType": "multipart/form-data"
+          }
+        },
+        {
+          "type": "code",
+          "name": "Process Response",
+          "description": "Parses API response and creates structured summary"
+        },
+        {
+          "type": "if",
+          "name": "Check Success",
+          "description": "Conditional logic to handle success/error responses"
+        },
+        {
+          "type": "code",
+          "name": "Format Success Results",
+          "description": "Formats successful analysis results for display"
+        },
+        {
+          "type": "code",
+          "name": "Format Error Results",
+          "description": "Formats error responses for display"
+        }
+      ]
+    },
+    {
+      "name": "Webhook Upload Interface",
+      "description": "HTTP webhook endpoint for web-based PDF upload and analysis",
+      "trigger_type": "webhook",
+      "nodes": [
+        {
+          "type": "webhook",
+          "name": "Webhook Trigger",
+          "description": "HTTP POST endpoint for file uploads",
+          "config": {
+            "httpMethod": "POST",
+            "path": "doc-sherlock",
+            "endpoint": "/webhook/doc-sherlock"
+          }
+        },
+        {
+          "type": "code",
+          "name": "Process Upload",
+          "description": "Validates and processes incoming file uploads"
+        },
+        {
+          "type": "httpRequest",
+          "name": "Analyze Uploaded PDF",
+          "description": "Sends uploaded PDF to doc-sherlock API for analysis",
+          "config": {
+            "method": "POST",
+            "url": "http://host.docker.internal:8000/analyze",
+            "contentType": "multipart/form-data"
+          }
+        },
+        {
+          "type": "code",
+          "name": "Return Webhook Response",
+          "description": "Formats and returns analysis results as JSON response"
+        }
+      ]
+    }
+  ],
+  "api_endpoints": {
+    "doc_sherlock": {
+      "url": "http://host.docker.internal:8000/analyze",
+      "method": "POST",
+      "content_type": "multipart/form-data",
+      "description": "Doc-Sherlock PDF analysis API endpoint",
+      "timeout": 30000,
+      "expected_response": {
+        "success": {
+          "findings": "array of finding objects"
+        },
+        "error": {
+          "error": "error message string"
+        }
+      }
+    },
+    "webhook_endpoint": {
+      "url": "http://localhost:5678/webhook/doc-sherlock",
+      "method": "POST",
+      "content_type": "multipart/form-data",
+      "description": "n8n webhook endpoint for PDF uploads",
+      "parameters": {
+        "file": "PDF file to analyze (required)"
+      }
+    }
+  },
+  "requirements": {
+    "docker": "Required for n8n container",
+    "doc_sherlock_api": "Must be running on host machine",
+    "n8n_version": ">=1.0.0",
+    "node_version": ">=18.0.0",
+    "npm_packages": []
+  },
+  "configuration": {
+    "container_name": "myn8n",
+    "host_port": 5678,
+    "container_port": 5678,
+    "data_volume": "n8n_data",
+    "file_storage_path": "/home/node/data",
+    "webhook_base_url": "http://localhost:5678/webhook"
+  },
+  "usage": {
+    "setup": "./setup.sh",
+    "start_n8n": "./runme.sh",
+    "start_api": "doc-sherlock rest-service --host 0.0.0.0 --port 8000",
+    "access_n8n": "http://localhost:5678",
+    "webhook_endpoint": "http://localhost:5678/webhook/doc-sherlock",
+    "import_workflow": "Import doc-sherlock-workflow.json via n8n UI"
+  },
+  "features": {
+    "manual_trigger": {
+      "description": "Manually trigger PDF analysis of pre-loaded files",
+      "use_case": "Testing with known PDF files"
+    },
+    "webhook_interface": {
+      "description": "HTTP endpoint for programmatic PDF uploads",
+      "use_case": "Integration with external systems"
+    },
+    "error_handling": {
+      "description": "Comprehensive error handling and response formatting",
+      "features": ["File validation", "API error handling", "Response formatting"]
+    },
+    "result_processing": {
+      "description": "Structured processing and formatting of analysis results",
+      "features": ["Finding categorization", "Severity grouping", "Summary statistics"]
+    }
+  },
+  "test_files": {
+    "default": "simple_cv.pdf",
+    "available": [
+      "simple_cv.pdf",
+      "low_contrast.pdf",
+      "hidden_layer.pdf",
+      "low_opacity.pdf",
+      "obscured_text.pdf",
+      "suspicious_metadata.pdf",
+      "tiny_font.pdf",
+      "encoding_anomaly.pdf",
+      "only_images.pdf",
+      "outside_boundary.pdf",
+      "rendering_discrepancy.pdf"
+    ],
+    "location": "tests/data/",
+    "container_path": "/home/node/data/sample.pdf"
+  },
+  "networking": {
+    "host_access": {
+      "default": "host.docker.internal",
+      "linux_alternative": "172.17.0.1",
+      "description": "Method to access host machine from container"
+    },
+    "ports": {
+      "n8n_ui": 5678,
+      "doc_sherlock_api": 8000
+    }
+  },
+  "security": {
+    "considerations": [
+      "Webhook endpoint has no authentication by default",
+      "Files are temporarily stored in container",
+      "Consider rate limiting for production use",
+      "Validate file types and sizes before processing"
+    ],
+    "recommendations": [
+      "Add authentication to webhook endpoints",
+      "Implement file size limits",
+      "Add request rate limiting",
+      "Use HTTPS in production",
+      "Implement proper logging and monitoring"
+    ]
+  },
+  "customization": {
+    "possible_modifications": [
+      "Change PDF file storage path",
+      "Add email notifications for findings",
+      "Store results in database",
+      "Integrate with other systems",
+      "Add authentication mechanisms",
+      "Process multiple files in batch",
+      "Add file validation and filtering",
+      "Implement retry logic for failed requests"
+    ],
+    "extension_points": [
+      "Custom result formatting",
+      "Additional API integrations",
+      "Database storage",
+      "Notification systems",
+      "File preprocessing",
+      "Result post-processing"
+    ]
+  },
+  "troubleshooting": {
+    "common_issues": [
+      {
+        "issue": "Connection refused to doc-sherlock API",
+        "solutions": [
+          "Ensure doc-sherlock API is running on host",
+          "Check API URL uses correct host reference",
+          "Verify firewall settings"
+        ]
+      },
+      {
+        "issue": "File not found errors",
+        "solutions": [
+          "Verify PDF file exists in container",
+          "Check file path in workflow",
+          "Ensure file permissions are correct"
+        ]
+      },
+      {
+        "issue": "Workflow execution failures",
+        "solutions": [
+          "Check execution log for detailed errors",
+          "Verify all nodes are properly connected",
+          "Ensure API endpoint is accessible"
+        ]
+      }
+    ]
+  },
+  "performance": {
+    "considerations": [
+      "Large PDF files may take longer to process",
+      "Consider implementing file size limits",
+      "Use n8n's queue mode for high-volume processing",
+      "Monitor container resource usage"
+    ],
+    "optimization": [
+      "Implement proper error handling",
+      "Add request timeouts",
+      "Use efficient file handling",
+      "Implement result caching if needed"
+    ]
+  }
+}
