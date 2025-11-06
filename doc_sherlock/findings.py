@@ -20,6 +20,7 @@ class FindingType(str, Enum):
     OBSCURED = "obscured"
     OPACITY = "opacity"
     RENDERING = "rendering"
+    PROMPT = "prompt"
     # Add specific subtypes
     OUTSIDE_BOUNDARY = "outside_boundary"
     LOW_CONTRAST = "low_contrast"
@@ -30,6 +31,7 @@ class FindingType(str, Enum):
     OBSCURED_TEXT = "obscured_text"
     LOW_OPACITY = "low_opacity"
     RENDERING_DISCREPANCY = "rendering_discrepancy"
+    PROMPT_INJECTION_JAILBREAK = "prompt_injection_jailbreak"
 
 
 class Severity(str, Enum):

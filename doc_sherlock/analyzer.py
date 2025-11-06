@@ -20,6 +20,7 @@ from .detectors.obscured_text_detector import ObscuredTextDetector
 from .detectors.metadata_detector import MetadataDetector
 from .detectors.rendering_detector import RenderingDetector
 from .detectors.encoding_detector import EncodingDetector
+from .detectors.prompt_detector import PromptDetector
 
 
 logger = logging.getLogger(__name__)
@@ -60,6 +61,7 @@ class PDFAnalyzer:
             MetadataDetector(self.pdf_path, self.config),
             ObscuredTextDetector(self.pdf_path, self.config),
             OpacityDetector(self.pdf_path, self.config),
+            PromptDetector(self.pdf_path, self.config),
             RenderingDetector(self.pdf_path, self.config),
         ]
 
