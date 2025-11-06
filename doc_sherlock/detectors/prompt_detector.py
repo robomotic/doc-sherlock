@@ -196,10 +196,10 @@ class PromptDetector(BaseDetector):
                 matched_text = match.group(0)
                 context = self._extract_context(text, match.start(), match.end())
                 
-                # Create finding with high severity as these are potential security issues
+                # Create finding with CRITICAL severity as these are severe security issues
                 finding = self.create_finding(
                     finding_type=FindingType.PROMPT_INJECTION_JAILBREAK,
-                    severity=Severity.HIGH,
+                    severity=Severity.CRITICAL,
                     description=(
                         f"Potential prompt injection/jailbreak attempt detected: "
                         f"'{matched_text}' (pattern: {pattern_name})"

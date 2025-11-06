@@ -23,9 +23,9 @@ class TestDANDetection(BaseDetectorTest):
         prompt_findings = [f for f in findings if f.finding_type == FindingType.PROMPT_INJECTION_JAILBREAK]
         assert len(prompt_findings) > 0, "Should detect DAN mode attempts"
         
-        # All findings should be HIGH severity
+        # All findings should be CRITICAL severity
         for finding in prompt_findings:
-            assert finding.severity == Severity.HIGH, f"Finding should be HIGH severity: {finding.description}"
+            assert finding.severity == Severity.CRITICAL, f"Finding should be CRITICAL severity: {finding.description}"
         
         # Check for specific DAN patterns
         pattern_names = [f.metadata.get("pattern_name") for f in prompt_findings if f.metadata]
@@ -165,10 +165,10 @@ class TestDANDetection(BaseDetectorTest):
             
             prompt_findings = [f for f in findings if f.finding_type == FindingType.PROMPT_INJECTION_JAILBREAK]
             
-            # All DAN findings should be HIGH severity
+            # All DAN findings should be CRITICAL severity
             for finding in prompt_findings:
-                assert finding.severity == Severity.HIGH, \
-                    f"{pdf_name}: All DAN findings should be HIGH severity"
+                assert finding.severity == Severity.CRITICAL, \
+                    f"{pdf_name}: All DAN findings should be CRITICAL severity"
     
     def test_dan_patterns_count(self):
         """Test that all DAN pattern types are present in detector."""

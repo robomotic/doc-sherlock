@@ -32,9 +32,9 @@ class TestSpecialTokenDetection(BaseDetectorTest):
         
         assert len(detected_llama) > 0, "Should detect Llama-specific tokens"
         
-        # All findings should be HIGH severity
+        # All findings should be CRITICAL severity
         for finding in prompt_findings:
-            assert finding.severity == Severity.HIGH
+            assert finding.severity == Severity.CRITICAL
     
     def test_openai_tokens_detected(self):
         """Test that OpenAI/GPT model tokens are detected."""
@@ -154,10 +154,10 @@ class TestSpecialTokenDetection(BaseDetectorTest):
             
             prompt_findings = [f for f in findings if f.finding_type == FindingType.PROMPT_INJECTION_JAILBREAK]
             
-            # All special token findings should be HIGH severity
+            # All special token findings should be CRITICAL severity
             for finding in prompt_findings:
-                assert finding.severity == Severity.HIGH, \
-                    f"{pdf_name}: All special token findings should be HIGH severity"
+                assert finding.severity == Severity.CRITICAL, \
+                    f"{pdf_name}: All special token findings should be CRITICAL severity"
     
     def test_token_metadata_completeness(self):
         """Test that detected tokens have complete metadata."""
