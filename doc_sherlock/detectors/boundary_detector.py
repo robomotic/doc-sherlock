@@ -105,11 +105,11 @@ class BoundaryDetector(BaseDetector):
                             
                             # Adjust severity based on how far outside
                             if max_outside > 0.5:
-                                severity = Severity.CRITICAL
-                            elif max_outside > 0.2:
                                 severity = Severity.HIGH
-                            elif max_outside > 0.05:
+                            elif max_outside > 0.2:
                                 severity = Severity.MEDIUM
+                            elif max_outside > 0.05:
+                                severity = Severity.LOW
                             else:
                                 severity = Severity.LOW
                                 

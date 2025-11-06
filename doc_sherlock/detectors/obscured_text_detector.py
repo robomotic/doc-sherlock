@@ -83,7 +83,7 @@ class ObscuredTextDetector(BaseDetector):
                                 finding = Finding(
                                     finding_type=FindingType.OBSCURED_TEXT,
                                     description=f"Text potentially obscured by image",
-                                    severity=Severity.MEDIUM,
+                                    severity=Severity.LOW,
                                     page_number=page_number,
                                     location={
                                         "x0": word_bbox[0] / float(page.width),
@@ -124,7 +124,7 @@ class ObscuredTextDetector(BaseDetector):
                                 finding = Finding(
                                     finding_type=FindingType.OBSCURED_TEXT,
                                     description=f"Text potentially obscured by shape",
-                                    severity=Severity.MEDIUM,
+                                    severity=Severity.LOW,
                                     page_number=page_number,
                                     location={
                                         "x0": word_bbox[0] / float(page.width),

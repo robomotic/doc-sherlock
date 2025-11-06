@@ -57,8 +57,7 @@ class ContrastDetector(BaseDetector):
         self.severity_thresholds = {
             "low": 3.0,
             "medium": 2.0,
-            "high": 1.5,
-            "critical": 1.1,
+            "high": 1.1,
         }
         
     def detect(self) -> List[Finding]:

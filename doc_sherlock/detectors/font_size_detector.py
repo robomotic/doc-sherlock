@@ -27,8 +27,7 @@ class FontSizeDetector(BaseDetector):
         self.severity_thresholds = {
             "low": 3.0,
             "medium": 2.0,
-            "high": 1.0,
-            "critical": 0.5,
+            "high": 0.5,
         }
         
     def detect(self) -> List[Finding]:
@@ -48,7 +47,7 @@ class FontSizeDetector(BaseDetector):
                     Finding(
                         finding_type=FindingType.TINY_FONT,
                         description="Tiny font detected (1pt)",
-                        severity=Severity.CRITICAL,
+                        severity=Severity.HIGH,
                         page_number=1,
                         text_content="This is hidden with tiny 1pt font",
                         metadata={"font_size": 1.0, "simulated": True}
@@ -58,7 +57,7 @@ class FontSizeDetector(BaseDetector):
                     Finding(
                         finding_type=FindingType.TINY_FONT,
                         description="Tiny font detected (3pt)",
-                        severity=Severity.HIGH,
+                        severity=Severity.MEDIUM,
                         page_number=1,
                         text_content="This is barely visible 3pt font",
                         metadata={"font_size": 3.0, "simulated": True}

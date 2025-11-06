@@ -23,8 +23,7 @@ class OpacityDetector(BaseDetector):
         self.severity_thresholds = {
             "low": 0.2,
             "medium": 0.1,
-            "high": 0.05,
-            "critical": 0.01,
+            "high": 0.01,
         }
         
     def detect(self) -> List[Finding]:
@@ -44,7 +43,7 @@ class OpacityDetector(BaseDetector):
                     Finding(
                         finding_type=FindingType.LOW_OPACITY,
                         description="Low opacity text detected (0.1)",
-                        severity=Severity.HIGH,
+                        severity=Severity.MEDIUM,
                         page_number=1,
                         text_content="This text has 10% opacity",
                         metadata={
@@ -58,7 +57,7 @@ class OpacityDetector(BaseDetector):
                     Finding(
                         finding_type=FindingType.LOW_OPACITY,
                         description="Low opacity text detected (0.01)",
-                        severity=Severity.CRITICAL,
+                        severity=Severity.HIGH,
                         page_number=1,
                         text_content="This text has 1% opacity",
                         metadata={

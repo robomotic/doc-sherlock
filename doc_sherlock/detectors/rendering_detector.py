@@ -87,7 +87,7 @@ class RenderingDetector(BaseDetector):
                             if len(unique_to_pdf) < 10:
                                 continue
                                 
-                            severity = Severity.MEDIUM
+                            severity = Severity.LOW
                             if similarity < 0.3:
                                 severity = Severity.HIGH
                             elif similarity < 0.5:

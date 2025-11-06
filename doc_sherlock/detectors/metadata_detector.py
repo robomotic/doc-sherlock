@@ -93,7 +93,7 @@ class MetadataDetector(BaseDetector):
                                 finding = Finding(
                                     finding_type=FindingType.SUSPICIOUS_METADATA,
                                     description=f"Suspicious content in metadata field '{key}'",
-                                    severity=Severity.HIGH,
+                                    severity=Severity.LOW,
                                     page_number=None,
                                     text_content=value[:200] + "..." if len(value) > 200 else value,
                                     metadata={
