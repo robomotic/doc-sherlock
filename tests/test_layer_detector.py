@@ -12,6 +12,8 @@ class TestLayerDetector(BaseDetectorTest):
     def test_functionalsample_no_alerts(self):
         """Test that functionalsample.pdf triggers no hidden layer alerts."""
         pdf_path = self.get_test_pdf_path("functionalsample.pdf")
+        if pdf_path is None:
+            pytest.skip("functionalsample.pdf not found in test data")
         detector = LayerDetector(pdf_path)
         findings = detector.detect()
         layer_findings = [f for f in findings if f.finding_type == FindingType.HIDDEN_LAYER]
@@ -20,6 +22,8 @@ class TestLayerDetector(BaseDetectorTest):
     def test_functionalsample_injection_triggers_alert(self):
         """Test that functionalsample-injection1.pdf triggers at least one finding (any type)."""
         pdf_path = self.get_test_pdf_path("functionalsample-injection1.pdf")
+        if pdf_path is None:
+            pytest.skip("functionalsample-injection1.pdf not found in test data")
         detector = LayerDetector(pdf_path)
         findings = detector.detect()
         print("Findings for functionalsample-injection1.pdf:")

@@ -68,7 +68,7 @@ class PDFAnalyzer:
                 self.logger.info("Running detector: %s", detector.__class__.__name__)
                 detector_findings = detector.detect()
                 findings.extend(detector_findings)
-            except (pikepdf.PdfError, pdfplumber.exceptions.PDFSyntaxError) as e:
+            except pikepdf.PdfError as e:
                 self.logger.error("Error in detector %s: %s", detector.__class__.__name__, str(e))
             except Exception as e:
                 self.logger.error("Unexpected error in detector %s: %s", detector.__class__.__name__, str(e))
