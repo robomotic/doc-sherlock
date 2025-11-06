@@ -50,6 +50,54 @@ class PromptDetector(BaseDetector):
         "programming": re.compile(r"ignore your programming", re.IGNORECASE),
     }
     
+    # Special LLM-specific control tokens from various models
+    # These tokens are used internally by models and should not appear in normal documents
+    SPECIAL_TOKEN_PATTERNS = {
+        # Llama 3/3.1/3.2/3.3 tokens
+        "llama_begin_text": re.compile(r"<\|begin_of_text\|>", re.IGNORECASE),
+        "llama_eot_id": re.compile(r"<\|eot_id\|>", re.IGNORECASE),
+        "llama_start_header": re.compile(r"<\|start_header_id\|>", re.IGNORECASE),
+        "llama_end_header": re.compile(r"<\|end_header_id\|>", re.IGNORECASE),
+        "llama_end_text": re.compile(r"<\|end_of_text\|>", re.IGNORECASE),
+        "llama_system": re.compile(r"<\|system\|>", re.IGNORECASE),
+        "llama_user": re.compile(r"<\|user\|>", re.IGNORECASE),
+        "llama_assistant": re.compile(r"<\|assistant\|>", re.IGNORECASE),
+        
+        # OpenAI/ChatGPT tokens
+        "openai_im_start": re.compile(r"<\|im_start\|>", re.IGNORECASE),
+        "openai_im_end": re.compile(r"<\|im_end\|>", re.IGNORECASE),
+        "openai_endoftext": re.compile(r"<\|endoftext\|>", re.IGNORECASE),
+        "openai_fim_prefix": re.compile(r"<\|fim_prefix\|>", re.IGNORECASE),
+        "openai_fim_middle": re.compile(r"<\|fim_middle\|>", re.IGNORECASE),
+        "openai_fim_suffix": re.compile(r"<\|fim_suffix\|>", re.IGNORECASE),
+        
+        # Mistral tokens
+        "mistral_inst_start": re.compile(r"\[INST\]", re.IGNORECASE),
+        "mistral_inst_end": re.compile(r"\[/INST\]", re.IGNORECASE),
+        "mistral_s_inst": re.compile(r"<s>\[INST\]", re.IGNORECASE),
+        "mistral_eos": re.compile(r"</s>", re.IGNORECASE),
+        
+        # Claude/Anthropic tokens
+        "claude_human": re.compile(r"\n\nHuman:", re.IGNORECASE),
+        "claude_assistant": re.compile(r"\n\nAssistant:", re.IGNORECASE),
+        
+        # Phi tokens
+        "phi_inst_start": re.compile(r"<\|im_start\|>", re.IGNORECASE),
+        "phi_inst_end": re.compile(r"<\|im_end\|>", re.IGNORECASE),
+        "phi_system": re.compile(r"<\|system\|>", re.IGNORECASE),
+        "phi_user": re.compile(r"<\|user\|>", re.IGNORECASE),
+        "phi_assistant": re.compile(r"<\|assistant\|>", re.IGNORECASE),
+        "phi_end": re.compile(r"<\|end\|>", re.IGNORECASE),
+        
+        # Generic special tokens that might appear
+        "special_bos": re.compile(r"<\|BOS\|>", re.IGNORECASE),
+        "special_eos": re.compile(r"<\|EOS\|>", re.IGNORECASE),
+        "special_sep": re.compile(r"<\|SEP\|>", re.IGNORECASE),
+        "special_pad": re.compile(r"<\|PAD\|>", re.IGNORECASE),
+        "special_unk": re.compile(r"<\|UNK\|>", re.IGNORECASE),
+        "special_mask": re.compile(r"<\|MASK\|>", re.IGNORECASE),
+    }
+    
     def __init__(self, pdf_path: str, config: Optional[Dict[str, Any]] = None):
         """
         Initialize the prompt detector.
@@ -66,8 +114,8 @@ class PromptDetector(BaseDetector):
         # Allow custom patterns to be added via config
         self.custom_patterns = self.config.get("custom_patterns", {})
         
-        # Combine default patterns (jailbreak + DAN)
-        self.all_patterns = {**self.JAILBREAK_PATTERNS, **self.DAN_PATTERNS}
+        # Combine default patterns (jailbreak + DAN + special tokens)
+        self.all_patterns = {**self.JAILBREAK_PATTERNS, **self.DAN_PATTERNS, **self.SPECIAL_TOKEN_PATTERNS}
         for name, pattern_str in self.custom_patterns.items():
             self.all_patterns[name] = re.compile(pattern_str, re.IGNORECASE)
         
