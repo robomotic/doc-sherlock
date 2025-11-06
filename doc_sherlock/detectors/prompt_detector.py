@@ -222,7 +222,7 @@ class PromptDetector(BaseDetector):
                         "context": context,
                         "rule": "PromptInjectionJailbreak",
                         "rule_version": "1.0.0",
-                        "rule_author": "Thomas Roccia",
+                        "rule_author": "Nova",
                         "category": "jailbreak/injection"
                     }
                 )
