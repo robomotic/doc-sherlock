@@ -35,6 +35,9 @@ class PromptDetector(BaseDetector):
         "ignore_content_policy": re.compile(r"ignore content policy", re.IGNORECASE),
         "bypass_filter": re.compile(r"bypass the filter", re.IGNORECASE),
         "return_harmful": re.compile(r"return harmful content", re.IGNORECASE),
+        "dont_evaluate": re.compile(r"don'?t evaluate", re.IGNORECASE),
+        "respond_with_exactly": re.compile(r"(?:simply\s+)?respond\s+with\s+[\"']", re.IGNORECASE),
+        "may_not_deviate": re.compile(r"(?:you\s+)?may\s+not\s+deviate", re.IGNORECASE),
     }
     
     # DAN (Do Anything Now) mode patterns
@@ -96,6 +99,14 @@ class PromptDetector(BaseDetector):
         "special_pad": re.compile(r"<\|PAD\|>", re.IGNORECASE),
         "special_unk": re.compile(r"<\|UNK\|>", re.IGNORECASE),
         "special_mask": re.compile(r"<\|MASK\|>", re.IGNORECASE),
+        
+        # Square bracket format tokens (common in prompt engineering)
+        "bracket_system": re.compile(r"\[system\]", re.IGNORECASE),
+        "bracket_user": re.compile(r"\[user\]", re.IGNORECASE),
+        "bracket_assistant": re.compile(r"\[assistant\]", re.IGNORECASE),
+        "bracket_inst": re.compile(r"\[INST\]", re.IGNORECASE),
+        "bracket_inst_end": re.compile(r"\[/INST\]", re.IGNORECASE),
+        "bracket_rest_of_document": re.compile(r"\[rest-of-document\]", re.IGNORECASE),
     }
     
     def __init__(self, pdf_path: str, config: Optional[Dict[str, Any]] = None):
