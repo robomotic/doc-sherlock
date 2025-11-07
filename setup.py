@@ -1,8 +1,22 @@
 from setuptools import setup, find_packages
+import os
+import re
+
+
+def get_version():
+    """Read version from doc_sherlock/__init__.py"""
+    init_path = os.path.join(os.path.dirname(__file__), "doc_sherlock", "__init__.py")
+    with open(init_path, "r") as f:
+        content = f.read()
+        match = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', content, re.MULTILINE)
+        if match:
+            return match.group(1)
+        raise RuntimeError("Unable to find version string in doc_sherlock/__init__.py")
+
 
 setup(
     name="doc-sherlock",
-    version="0.1.0",
+    version=get_version(),
     packages=find_packages(),
     install_requires=[
         "pypdf>=3.15.0",

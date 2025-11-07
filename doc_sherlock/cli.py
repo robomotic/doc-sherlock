@@ -18,6 +18,7 @@ import uvicorn
 import requests
 import tempfile
 
+from . import __version__
 from .analyzer import PDFAnalyzer
 from .findings import Finding, FindingType, Severity, AnalysisResults
 
@@ -53,6 +54,7 @@ def print_finding(finding, show_location=True):
 
 
 @click.group()
+@click.version_option(version=__version__, prog_name="doc-sherlock")
 def cli():
     """Doc-Sherlock: Detect hidden text and potential prompt injection vectors in PDF files."""
 
@@ -173,6 +175,14 @@ def analyze(path, output, markdown, recursive, no_color, quiet, extract_only, ex
 def main():
     """Main entry point for the CLI."""
     cli()
+
+
+
+# --- Version Command ---
+@cli.command()
+def version():
+    """Show the version of doc-sherlock."""
+    click.echo(f"doc-sherlock version {__version__}")
 
 
 # --- FastAPI REST Service Command ---
