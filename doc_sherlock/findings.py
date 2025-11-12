@@ -69,18 +69,6 @@ class Finding:
 
 
 class AnalysisResults:
-    def summary(self) -> str:
-        """Return a human-readable summary of findings."""
-        if not self.findings:
-            return f"No findings for {self.pdf_path}."
-        summary_lines = [f"Findings for {self.pdf_path}:"]
-        for finding in self.findings:
-            summary_lines.append(f"- [{finding.severity}] {finding.finding_type}: {finding.description}")
-        return "\n".join(summary_lines)
-
-    def has_findings(self) -> bool:
-        """Return True if there are any findings."""
-        return bool(self.findings)
     """Container for all findings from analyzing a PDF."""
 
     def __init__(self, pdf_path: str, findings: List[Finding]):
@@ -93,12 +81,32 @@ class AnalysisResults:
         """
         self.pdf_path = pdf_path
         self.findings = findings
+        self.actions = self._determine_actions()
+
+    def _determine_actions(self) -> str:
+        """
+        Determine the recommended actions based on findings.
+        
+        Returns:
+            str: Recommended action string
+        """
+        if not self.findings:
+            return "This document is clean"
+        
+        # Check for critical prompt injection/jailbreak findings
+        for finding in self.findings:
+            if finding.finding_type == FindingType.PROMPT_INJECTION_JAILBREAK:
+                return "This document should be blocked and reviewed by a human analyst"
+        
+        # If there are findings but no critical ones
+        return "This document is potentially risky and should be reviewed"
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert results to dictionary format."""
         return {
             "pdf_path": self.pdf_path,
-            "findings": [finding.to_dict() for finding in self.findings]
+            "findings": [finding.to_dict() for finding in self.findings],
+            "actions": self.actions
         }
 
     def to_json(self, indent: int = 2) -> str:
@@ -115,3 +123,17 @@ class AnalysisResults:
         """
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(self.to_dict(), f, indent=indent)
+
+    def summary(self) -> str:
+        """Return a human-readable summary of findings."""
+        if not self.findings:
+            return f"No findings for {self.pdf_path}."
+        summary_lines = [f"Findings for {self.pdf_path}:"]
+        for finding in self.findings:
+            summary_lines.append(f"- [{finding.severity}] {finding.finding_type}: {finding.description}")
+        summary_lines.append(f"\nRecommended action: {self.actions}")
+        return "\n".join(summary_lines)
+
+    def has_findings(self) -> bool:
+        """Return True if there are any findings."""
+        return bool(self.findings)

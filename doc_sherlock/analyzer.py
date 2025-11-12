@@ -84,8 +84,7 @@ class PDFAnalyzer:
         Returns:
             AnalysisResults containing all findings
         """
-        findings = self.run_all_detectors()
-        return AnalysisResults(str(self.pdf_path), findings)
+        return self.run_all_detectors()
 
     @classmethod
     def analyze_directory(cls, directory_path: Union[str, Path], recursive: bool = False, config: Optional[Dict[str, Any]] = None) -> List[AnalysisResults]:
